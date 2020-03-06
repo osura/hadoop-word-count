@@ -13,4 +13,4 @@ $ mvn clean install
 Run
 ---
 
-$ mvn exec:java -Dexec.mainClass=com.igalia.wordcount.App
+$ mvn exec:java -Dexec.mainClass=App
