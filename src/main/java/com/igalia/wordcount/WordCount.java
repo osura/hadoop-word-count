@@ -1,27 +1,13 @@
-/*
- * Copyright (C) 2012 Igalia, S.L.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+
 
 package com.igalia.wordcount;
 
 import java.io.IOException;
-import java.util.StringTokenizer;
+import java.util.*;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -31,18 +17,13 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 
-/**
- * 
- * @author Diego Pino García <dpino@igalia.com>
- * 
- * Canonical implementation at http://wiki.apache.org/hadoop/WordCount
- *
- */
+
 public class WordCount extends Configured implements Tool {
 	
 	public static class MapClass extends
 			Mapper<Object, Text, Text, IntWritable> {
 
+		//count is always one for every word the mapper finds
 		private static final IntWritable ONE = new IntWritable(1);
 		private Text word = new Text();
 
@@ -50,15 +31,20 @@ public class WordCount extends Configured implements Tool {
 		protected void map(Object key, Text value, Context context)
 				throws IOException, InterruptedException {
 
+			//splits the string to words/token
 			StringTokenizer tokenizer = new StringTokenizer(value.toString());
 			while (tokenizer.hasMoreTokens()) {
+
+				//every token is a word
 				String token = tokenizer.nextToken();
 				word.set(token);
+
+				//pass to the reducer every word with count 1
 				context.write(word, ONE);
 			}
 		}
 	}
-		
+
 	public static class Reduce extends
 			Reducer<Text, IntWritable, Text, IntWritable> {
 
@@ -66,7 +52,7 @@ public class WordCount extends Configured implements Tool {
 
 		@Override
 		protected void reduce(Text key, Iterable<IntWritable> values,
-				Context context) throws IOException, InterruptedException {
+							  Context context) throws IOException, InterruptedException {
 
 			int sum = 0;
 			for (IntWritable value : values) {
@@ -76,6 +62,9 @@ public class WordCount extends Configured implements Tool {
 			context.write(key, count);
 		}
 	}
+
+
+
 
 	public int run(String[] arg0) throws Exception {		
         Job job = new Job(getConf());
@@ -88,8 +77,9 @@ public class WordCount extends Configured implements Tool {
         job.setMapperClass(MapClass.class);
         job.setReducerClass(Reduce.class);
 
-		FileInputFormat.setInputPaths(job, new Path("/tmp/wordcount/in"));
-		FileOutputFormat.setOutputPath(job, new Path("/tmp/wordcount/out"));
+		FileInputFormat.setInputPaths(job, new Path(arg0[0]));
+		FileOutputFormat.setOutputPath(job, new Path(arg0[1]));
+
 
 		boolean success = job.waitForCompletion(true);
 		return success ? 0 : 1; 

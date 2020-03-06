@@ -1,0 +1,9 @@
+[
+
+	{
+		"Classification": "mapred-site",
+		"Properties": {
+			"mapreduce.tasktracker.reduce.tasks.maximum": "1"
+		}
+	}
+]
