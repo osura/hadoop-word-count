@@ -1,6 +1,6 @@
 
 
-package com.igalia.wordcount;
+package com.osura.wordcount;
 
 import java.io.IOException;
 import java.util.*;
