@@ -1,16 +1,8 @@
 Description
 -----------
 
-Simple implementation of Word-Count example. 
+Simple word count project using hadoop mapreduce
 
-Input is read from directory */tmp/wordcount/in*, and output is written to */tmp/wordcount/out*.
+Input file is the first argument second argument is the output directory
+ex:- java -jar wordcount.jar input output
 
-Compile
--------
-
-$ mvn clean install
-
-Run
----
-
-$ mvn exec:java -Dexec.mainClass=App
