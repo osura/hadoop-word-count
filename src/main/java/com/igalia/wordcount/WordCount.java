@@ -46,22 +46,60 @@ public class WordCount extends Configured implements Tool {
 	}
 
 	public static class Reduce extends
-			Reducer<Text, IntWritable, Text, IntWritable> {
+			Reducer<Text, IntWritable, Text, FloatWritable> {
 
 		private IntWritable count = new IntWritable();
+		// hashmap to store all previous reducer results
+		HashMap<String, Integer> hmap = new HashMap<String, Integer>();
+
+		//to store total count of words
+		IntWritable totalcount = new IntWritable(0);
+
+
 
 		@Override
 		protected void reduce(Text key, Iterable<IntWritable> values,
-							  Context context) throws IOException, InterruptedException {
+				Context context) throws IOException, InterruptedException {
 
+
+			System.out.println("totalcount+"+totalcount);
 			int sum = 0;
 			for (IntWritable value : values) {
 				sum += value.get();
 			}
+
 			count.set(sum);
-			context.write(key, count);
+
+			hmap.put(key.toString(),sum);
+			System.out.println("list size"+hmap.size());
+
+			totalcount.set(totalcount.get()+count.get());
+
+
+			Set set = hmap.entrySet();
+			Iterator iterator = set.iterator();
+
+			//add this key as a delimiter so the final result is easy to filter
+			context.write(new Text("----------avg_iterator_start--------"),new FloatWritable(0));
+			while(iterator.hasNext()) {
+				Map.Entry mentry = (Map.Entry)iterator.next();
+				System.out.print("key is: "+ mentry.getKey() + " & Value is: ");
+				System.out.println(mentry.getValue());
+
+
+				System.out.println((float) Integer.parseInt(mentry.getValue().toString())/(float) totalcount.get());
+				context.write(new Text(mentry.getKey().toString()),new FloatWritable((float) Integer.parseInt(mentry.getValue().toString())/(float) totalcount.get()));
+
+			}
+
+
+			context.write(new Text("-----------avg_iterator_end---------"),new FloatWritable(0));
+
+
+
 		}
 	}
+
 
 
 
